@@ -1,0 +1,59 @@
+version: '3.4'
+x-logging:
+    &default-logging
+    options:
+      max-size: '10m'
+      max-file: '1'
+    driver: json-file
+services:
+    portainer:
+        image: portainer/portainer
+        container_name: portainer
+        restart: on-failure
+        ports:
+            - "9000:9000"
+        volumes:
+           - /var/run/docker.sock:/var/run/docker.sock
+           - ${VOLUMES_DIR}/portainer:/data
+        logging: *default-logging          
+    mysql:
+       image: mysql:5.7
+       command: mysqld --sql_mode='NO_ENGINE_SUBSTITUTION'
+       restart: on-failure
+       environment:
+           - MYSQL_ROOT_PASSWORD=toor
+           - DEFAULT_TIME_ZONE=America/Sao_Paulo
+           - TZ=America/Sao_Paulo           
+       volumes:
+           - ${VOLUMES_DIR}/mysql:/var/lib/mysql
+       container_name: mysql
+       ports:
+           - 3306:3306
+       logging: *default-logging
+    redis:
+        image: redis:latest
+        container_name: redis
+        ports:
+           - "6379:6379"
+        logging: *default-logging      
+    mongo:
+        image: mongo:latest
+        volumes:
+            - ${VOLUMES_DIR}/mongodb:/data/db
+        container_name: mongo
+        ports:
+            - 27017:27017
+        logging: *default-logging
+    rabbitmq:
+        image: rabbitmq:3-management
+        container_name: rabbitmq
+        ports:
+            - "15672:15672"
+            - "5672:5672"
+        volumes:
+            - ${VOLUMES_DIR}/rabbitmq:/var/lib/rabbitmq
+        environment:
+            - RABBITMQ_ERLANG_COOKIE=cookie
+            - RABBITMQ_DEFAULT_USER=root
+            - RABBITMQ_DEFAULT_PASS=toor
+        logging: *default-logging
